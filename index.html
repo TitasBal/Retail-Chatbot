@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senukai AI Retail Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --background-color: #f8f9fa;
+            --text-color: #000000;
+            --bot-bubble-rgba: rgb(0, 0, 0);
+            --user-bubble-rgba: rgba(255, 225, 150, 0.55);
+            --bot-border-rgba: rgba(255, 255, 255, 0.2);
+            --user-border-rgba: rgba(255, 255, 255, 0.5);
+            --font-family: 'Poppins', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: var(--text-color);
+            padding: 10px;
+            background-color: var(--background-color);
+            background-image: 
+                radial-gradient(at 15% 15%, hsla(339,89%,78%,0.3) 0px, transparent 50%),
+                radial-gradient(at 85% 80%, hsla(196,98%,77%,0.3) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, hsla(355,89%,78%,0.2) 0px, transparent 50%);
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 95vh;
+            max-height: 900px;
+            background-color: rgba(255, 255, 255, 0.795);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.274);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #FFC90E;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 80%;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .bot-message .avatar { background-color: #000000; }
+        .user-message .avatar { background-color: #FFC90E; }
+        .message-content {
+            padding: 12px 18px;
+            border-radius: 20px;
+            line-height: 1.5;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            word-break: break-word;
+        }
+        .bot-message { align-self: flex-start; }
+        .bot-message .message-content {
+            background-color: var(--bot-bubble-rgba);
+            border-color: var(--bot-border-rgba);
+            border-top-left-radius: 5px;
+            color: #ffffff;
+        }
+        .user-message { align-self: flex-end; flex-direction: row-reverse; }
+        .user-message .message-content {
+            background-color: var(--user-bubble-rgba);
+            border-color: var(--user-border-rgba);
+            border-top-right-radius: 5px;
+        }
+        .sources {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            border-left: 2px solid;
+            padding-left: 10px;
+            color: inherit; 
+            opacity: 0.8;
+        }
+        .sources span { font-weight: 600; }
+        .chat-input-form {
+            display: flex;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+        #user-input {
+            flex-grow: 1;
+            border: 1px solid #ced4da;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: var(--text-color);
+            padding: 12px 15px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-family: var(--font-family);
+        }
+        #user-input:focus {
+            outline: none;
+            border-color: #FFC90E;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
+        }
+        #send-button {
+            border: none;
+            background-color: #FFC90E;
+            color: black;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.2s ease;
+            touch-action: manipulation;
+        }
+        #send-button:hover { background-color: #FFC90E; }
+        #send-button:disabled { background-color: #adb5bd; cursor: not-allowed; }
+        .typing-indicator { display: flex; align-items: center; gap: 5px; }
+        .typing-indicator span {
+            height: 8px; width: 8px; background-color: #6c757d;
+            border-radius: 50%; display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator .dot1 { animation-delay: -0.32s; }
+        .typing-indicator .dot2 { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        @media (max-width: 600px) {
+            .chat-container { max-width: 100%; height: 100vh; max-height: none; }
+        }
+        @keyframes fadeInBox {
+          0% { opacity: 0; transform: translateY(12px);}
+          100% { opacity: 1; transform: translateY(0);}
+        }
+        .complementary-items {
+            opacity: 0;
+            animation: fadeInBox 0.9s ease-out 1 forwards;
+        }
+        .complementary-label {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #B28700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .complementary-boxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .suggestion-card {
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 1px solid #FFD36E;
+            min-width: 120px;
+            max-width: 170px;
+            padding: 14px 12px;
+            margin-bottom: 0;
+            margin-right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            box-shadow: 0 1px 4px rgba(255,201,14,0.09);
+            cursor: pointer;
+            transition: background 0.16s, box-shadow 0.16s;
+        }
+        .suggestion-card:hover {
+            background: #FFC90E;
+            box-shadow: 0 4px 16px rgba(255,201,14,0.12);
+        }
+        .suggestion-card .item-title {
+            font-size: 1.07rem;
+            font-weight: 600;
+            color: #806300;
+        }
+        .suggestion-card .item-action {
+            margin-top: 4px;
+            font-size: 0.98rem;
+            color: #2e2e2e;
+            opacity: 0.62;
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            .complementary-boxes { flex-direction: column; gap: 10px; }
+            .suggestion-card { width: 90%; max-width: 95vw; }
+        }
+        .product-title { font-weight: bold; font-size: 1.13rem; margin-bottom: 3px; }
+        .product-price { font-weight: 600; color: #ffffff; margin-bottom: 3px; }
+        .product-summary { font-size: 1rem; color: #ddd681; margin-bottom: 3px; }
+        .product-section { font-weight: 600; color: #f4d86b; margin-top: 6px; }
+        .product-bullets { margin: 0 0 6px 18px; padding: 0; }
+        .product-bullets li { margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header" role="heading" aria-level="1">
+            <span>Senukai AI Consultant</span>
+        </div>
+        <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="Chat messages">
+            <div class="message bot-message">
+                <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="message-content">
+                    <p>Hello! How can I help you today?</p>
+                </div>
+            </div>
+        </div>
+        <form class="chat-input-form" id="chat-form" autocomplete="off">
+            <input type="text" id="user-input" aria-label="Type your message to Senukai AI Consultant"
+                placeholder="Ask about tools, materials, paint..." autocomplete="off">
+            <button type="submit" id="send-button" aria-label="Send message">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const messagesContainer = document.getElementById('chat-messages');
+        const defaultAPI =
+            (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+                ? "http://127.0.0.1:8000"
+                : "https://YOUR_PRODUCTION_API_DOMAIN.com";
+        const apiAskEndpoint = `${defaultAPI}/ask`;
+        const apiHealthEndpoint = `${defaultAPI}/health`;
+        const apiComplementaryEndpoint = `${defaultAPI}/complementary`;
+        let isBackendAvailable = true;
+
+        userInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                e.preventDefault();
+            }
+        });
+
+        chatForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!isBackendAvailable) {
+                appendMessage("Backend unavailable. Please try again later.", 'bot');
+                return;
+            }
+            const messageText = userInput.value.trim();
+            if (!messageText) return;
+
+            appendMessage(messageText, 'user');
+            userInput.value = '';
+            toggleForm(false);
+            showTypingIndicator(true);
+
+            try {
+                const response = await fetch(apiAskEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: messageText }),
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok.');
+                const data = await response.json();
+                await appendMessageWithSuggestions(data.answer, 'bot', data.sources);
+            } catch (error) {
+                const errorMessage = "Sorry, I'm having trouble connecting. Please check the backend and try again.";
+                appendMessage(errorMessage, 'bot');
+                isBackendAvailable = false;
+                checkHealthPeriodically();
+                console.error('API Error:', error);
+            } finally {
+                showTypingIndicator(false);
+                toggleForm(true);
+            }
+        });
+
+        function formatBotAnswer(answer) {
+            const lines = answer.split('\n').map(line => line.trim());
+            let html = '';
+            let section = '';
+            let bullets = [];
+            lines.forEach(line => {
+                if (line.startsWith('Price:')) {
+                    html += `<div class="product-price">${line.replace("Price:", "").trim()}</div>`;
+                } else if (line.startsWith('Summary:')) {
+                    html += `<div class="product-summary">${line.replace("Summary:", "").trim()}</div>`;
+                } else if (line.startsWith('Key Features:')) {
+                    section = 'features';
+                    if (bullets.length) {
+                        html += `<ul class="product-bullets">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
+                        bullets = [];
+                    }
+                    html += `<div class="product-section">Key Features:</div>`;
+                } else if (line.startsWith('Accessories:')) {
+                    section = 'accessories';
+                    if (bullets.length) {
+                        html += `<ul class="product-bullets">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
+                        bullets = [];
+                    }
+                    html += `<div class="product-section">Accessories:</div>`;
+                } else if (line.match(/^•/)) {
+                    bullets.push(line.replace(/^[-•\s]+/, '').trim());
+                } else if (line) {
+                    if (bullets.length) {
+                        html += `<ul class="product-bullets">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
+                        bullets = [];
+                    }
+                    html += `<div class="product-title">${line}</div>`;
+                }
+            });
+            if (bullets.length) {
+                html += `<ul class="product-bullets">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
+            }
+            return html;
+        }
+
+        function appendMessage(text, sender, sources = []) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('message', `${sender}-message`);
+            const avatar = document.createElement('div');
+            avatar.classList.add('avatar');
+            avatar.innerHTML = sender === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            
+            if (sender === 'bot') {
+                messageContent.innerHTML = formatBotAnswer(text);
+            } else {
+                const textElement = document.createElement('p');
+                textElement.textContent = text;
+                messageContent.appendChild(textElement);
+            }
+            if (sources && sources.length > 0) {
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.classList.add('sources');
+                let sourcesText = `<span>Sources:</span> `;
+                sourcesText += sources.map(s => s.name || s.id).join(', ');
+                sourcesDiv.innerHTML = sourcesText;
+                messageContent.appendChild(sourcesDiv);
+            }
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(messageContent);
+            messagesContainer.appendChild(messageWrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Fade-in suggestions after the text is shown
+        async function appendMessageWithSuggestions(text, sender, sources = []) {
+            appendMessage(text, sender, sources);
+
+            if (sender === 'bot') {
+                setTimeout(async () => {
+                    let products = [];
+                    const re = /\*\*([^\*]+)\*\*/g;
+                    let match;
+                    while ((match = re.exec(text)) !== null) {
+                        products.push(match[1].trim());
+                    }
+                    if (products.length === 0 && sources && sources.length > 0) {
+                        products.push(sources[0].name || sources[0].id);
+                    }
+                    for (const product of products.length ? products : [text]) {
+                        const items = await fetchComplementary(product);
+                        if (items.length > 0) {
+                            renderComplementaryItems(items);
+                            break;
+                        }
+                    }
+                }, 400);
+            }
+        }
+
+        async function fetchComplementary(item) {
+            try {
+                const response = await fetch(apiComplementaryEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: item }),
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.complementary || [];
+                }
+            } catch(e) { return []; }
+            return [];
+        }
+
+        function renderComplementaryItems(items) {
+            
+            const oldBoxes = document.querySelectorAll('.complementary-items');
+            oldBoxes.forEach(box => box.remove());
+
+            const suggestionDiv = document.createElement('div');
+            suggestionDiv.className = 'complementary-items';
+            suggestionDiv.innerHTML = `
+                <div class="complementary-label">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Suggestions:</span>
+                </div>
+                <div class="complementary-boxes">
+                    ${items.map(i => `
+                        <div class="suggestion-card">
+                            <div class="item-title">${i}</div>
+                            <div class="item-action">Ask about "${i}"</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            messagesContainer.appendChild(suggestionDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            Array.from(suggestionDiv.getElementsByClassName('suggestion-card')).forEach(el => {
+                el.addEventListener('click', () => {
+                    userInput.value = el.querySelector('.item-title').textContent;
+                    userInput.focus();
+                });
+            });
+        }
+
+        function showTypingIndicator(show) {
+            let indicator = document.getElementById('typing-indicator');
+            if (show) {
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'typing-indicator';
+                    indicator.classList.add('message', 'bot-message');
+                    indicator.innerHTML = `
+                        <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                        <div class="message-content">
+                            <div class="typing-indicator">
+                                <span class="dot1"></span>
+                                <span class="dot2"></span>
+                                <span class="dot3"></span>
+                            </div>
+                        </div>
+                    `;
+                    messagesContainer.appendChild(indicator);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            } else {
+                if (indicator) indicator.remove();
+            }
+        }
+
+        function toggleForm(enabled) {
+            userInput.disabled = !enabled;
+            sendButton.disabled = !enabled;
+            if (enabled) userInput.focus();
+        }
+
+        async function checkHealthPeriodically() {
+            let tries = 0, maxTries = 20;
+            const interval = setInterval(async () => {
+                tries++;
+                try {
+                    let response = await fetch(apiHealthEndpoint);
+                    if (response.ok) {
+                        isBackendAvailable = true;
+                        appendMessage("Backend is now online. You can continue chatting!", 'bot');
+                        clearInterval(interval);
+                    }
+                } catch (e) {}
+                if (tries >= maxTries) clearInterval(interval);
+            }, 5000);
+        }
+
+        (async function () {
+            try {
+                let response = await fetch(apiHealthEndpoint);
+                if (!response.ok) isBackendAvailable = false;
+            } catch (e) { isBackendAvailable = false; }
+            if (!isBackendAvailable) {
+                appendMessage("Backend is currently unavailable. Please try again later.", 'bot');
+                toggleForm(false);
+                checkHealthPeriodically();
+            }
+        })();
+    </script>
+</body>
+</html>

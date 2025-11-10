@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+loguru
+langchain-google-genai
+langchain-classic
+langchain-pinecone
+langchain-huggingface
+slowapi
