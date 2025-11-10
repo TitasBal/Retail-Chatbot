@@ -5,6 +5,8 @@ This REST API powers a retail chatbot. It uses Google Gemini LLM, Pinecone vecto
 and LangChain to provide intelligent Q&A, product suggestions, and complementary recommendations to shoppers using
 plain conversational language.
 
+<img width="885" height="1063" alt="image" src="https://github.com/user-attachments/assets/c087b75c-5585-4350-9e51-5a5480ef93c7" />
+
 -----------------------------------------------------------------------------------------------------------------------
 CAPABILITIES
 -----------------------------------------------------------------------------------------------------------------------
